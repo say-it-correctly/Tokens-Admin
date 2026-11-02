@@ -1,0 +1,2 @@
+// Public settings reused from the educational repository. No flags enabled.
+window.SIC_CONFIG={"enabled":false,"apiBase":"https://ostmuznlgtanjzolomgv.supabase.co/functions/v1/sic-commerce","supabaseUrl":"https://ostmuznlgtanjzolomgv.supabase.co","publishableKey":"sb_publishable_wKBaUE1awT8whZHnUZl0oA_XfKgws1C","turnstileSiteKey":"0x4AAAAAAFtnHNgol4ph1Y5O","privacyVersion":"sic-privacy-v1","privacyUrl":"https://say-it-correctly.github.io/Say-it-correctly.org/privacidad.html","privacyApproved":false};
