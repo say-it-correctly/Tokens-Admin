@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
 <title>SIC — Prueba temporal de correo administrativo</title>
 <style>
 :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#183d72;background:#f3f6fc}*{box-sizing:border-box}body{margin:0;padding:40px 16px}main{max-width:650px;margin:auto;background:#fff;border:1px solid #d8e2f0;border-radius:16px;padding:28px;box-shadow:0 10px 40px #183d7210}h1{font-size:1.7rem;margin:0 0 12px}p{line-height:1.6}label{display:block;font-weight:650;margin:16px 0 8px}input{width:100%;padding:12px;border:1px solid #91a8c9;border-radius:9px;font:inherit}button{display:block;margin-top:18px;background:#183d72;border:0;border-radius:9px;color:#fff;font-weight:650;padding:14px 18px;font:inherit;cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}#status{margin-top:15px;padding:12px;border-radius:8px;background:#f3f6fc;overflow-wrap:anywhere}small{color:#4d6179}#captcha{margin-top:16px;min-height:65px}
@@ -12,7 +13,7 @@
 <body>
 <main>
 <h1>Prueba temporal de correo — Say It Correctly</h1>
-<p>Esta página sirve <strong>solo para comprobar la recepción de un Magic Link</strong> en la cuenta administrativa existente. No habilita operaciones comerciales ni crea usuarios.</p>
+<p>Esta página comprueba el ingreso mediante Magic Link en la cuenta administrativa existente y sus permisos de lectura en el servidor. No habilita operaciones comerciales ni crea usuarios.</p>
 <form id="form">
 <label for="email">Correo administrativo autorizado</label>
 <input id="email" type="email" value="say.it.correctly.github@gmail.com" readonly autocomplete="off">
@@ -20,7 +21,7 @@
 <button id="send" disabled type="submit">Solicitar un único correo de prueba</button>
 </form>
 <div role="status" aria-live="polite" id="status">Comprobando configuración de seguridad…</div>
-<p><small>Por seguridad, no pegues aquí códigos, enlaces recibidos ni credenciales. La página no guarda sesiones ni lee contenidos de la bandeja de entrada. El correo puede contener un enlace de inicio de sesión, no un código visible.</small></p>
+<p><small>Solicita un único correo y abre su enlace en el navegador. No copies ni compartas el enlace. La página no lee tu bandeja ni almacena credenciales; utiliza la sesión solo en memoria durante la comprobación y limpia la URL de retorno.</small></p>
 </main>
 <script>
 (()=>{'use strict';
@@ -29,12 +30,30 @@ const URL='https://ostmuznlgtanjzolomgv.supabase.co';
 const KEY='sb_publishable_wKBaUE1awT8whZHnUZl0oA_XfKgws1C';
 const SITEKEY='0x4AAAAAAFtnHNgol4ph1Y5O';
 const ADDRESS='say.it.correctly.github@gmail.com';
+const ADMIN_ID='ea79aaaa-5bb7-4477-bda7-1676db533693';
+const RETURN_URL='https://say-it-correctly.github.io/Tokens-Admin/sic-prueba-correo-admin.html';
 const status=document.getElementById('status');
 const button=document.getElementById('send');
 const form=document.getElementById('form');
 let sent=false,widget=null,token='';
 function report(msg){status.textContent=msg}
 if(location.hostname!==HOST){report('Para resolver Turnstile, publica temporalmente este archivo bajo https://say-it-correctly.github.io/ . No funciona como archivo local ni desde otros dominios.');return;}
+const callback=(()=>{const fragment=new URLSearchParams(location.hash.slice(1)),query=new URLSearchParams(location.search);const attempt=fragment.has('access_token')||fragment.has('error')||fragment.has('error_code')||query.has('code')||query.has('error');const accessToken=fragment.get('access_token')||'';if(location.hash||location.search)history.replaceState(null,'',location.pathname);return {attempt,accessToken};})();
+async function checkAdministrativeSession(){sent=true;button.disabled=true;form.hidden=true;
+ if(!callback.accessToken){report('El enlace no entregó una sesión compatible. No se solicitó otro correo ni se modificó Auth.');return;}
+ const ctl=new AbortController(),timeout=setTimeout(()=>ctl.abort(),15000);
+ try{report('Verificando identidad y autorización administrativa…');
+  const userResponse=await fetch(URL+'/auth/v1/user',{method:'GET',headers:{apikey:KEY,authorization:'Bearer '+callback.accessToken},credentials:'omit',cache:'no-store',redirect:'error',signal:ctl.signal});
+  if(!userResponse.ok){report('No se pudo verificar la sesión con Supabase Auth. No se ejecutaron operaciones comerciales.');return;}
+  const user=await userResponse.json();if(user.id!==ADMIN_ID||String(user.email||'').toLowerCase()!==ADDRESS||!user.email_confirmed_at||user.is_anonymous){report('La identidad no corresponde al administrador autorizado. No se consultaron datos administrativos.');return;}
+  const permissionResponse=await fetch(URL+'/functions/v1/sic-commerce/admin/capacity',{method:'GET',headers:{authorization:'Bearer '+callback.accessToken},credentials:'omit',cache:'no-store',redirect:'error',signal:ctl.signal});
+  if(!permissionResponse.ok){report('Identidad verificada por Auth; autorización administrativa no confirmada (HTTP '+permissionResponse.status+').');return;}
+  const capacity=await permissionResponse.json();if(!Number.isInteger(capacity.used)||capacity.used<0||capacity.used>50){report('La respuesta administrativa no cumple el contrato esperado. No se ejecutaron operaciones comerciales.');return;}
+  report('Sesión e identidad administrativa verificadas por Supabase Auth; autorización de lectura confirmada por sic-commerce. No se ejecutaron operaciones comerciales.');
+ }catch{report('No se completó la comprobación de sesión y permisos. No se reintentó ni se ejecutaron operaciones comerciales.');}
+ finally{clearTimeout(timeout);callback.accessToken='';}
+}
+if(callback.attempt){checkAdministrativeSession();return;}
 window.sicCaptchaReady=()=>{
 try{widget=turnstile.render('#captcha',{sitekey:SITEKEY,callback:value=>{token=value;button.disabled=sent||!value;report('CAPTCHA válido. Puedes solicitar un único correo de prueba.');},'expired-callback':()=>{token='';button.disabled=true;report('CAPTCHA vencido. Complétalo otra vez.');},'error-callback':()=>{token='';button.disabled=true;report('No se pudo validar CAPTCHA. Comprueba su configuración en Supabase y Cloudflare.');}});report('Completa CAPTCHA para enviar una única solicitud.');}catch(e){report('No se pudo iniciar CAPTCHA. No se envió ningún correo.')}};
 form.addEventListener('submit',async e=>{
@@ -42,15 +61,16 @@ e.preventDefault();if(sent||!token)return;
 sent=true;button.disabled=true;report('Solicitando correo a Supabase Auth…');
 const ctl=new AbortController();const timeout=setTimeout(()=>ctl.abort(),15000);
 try{
-const res=await fetch(URL+'/auth/v1/otp',{method:'POST',headers:{'apikey':KEY,'Content-Type':'application/json'},body:JSON.stringify({email:ADDRESS,create_user:false,gotrue_meta_security:{captcha_token:token}}),signal:ctl.signal,credentials:'omit'});
+const res=await fetch(URL+'/auth/v1/otp?redirect_to='+encodeURIComponent(RETURN_URL),{method:'POST',headers:{'apikey':KEY,'Content-Type':'application/json'},body:JSON.stringify({email:ADDRESS,create_user:false,gotrue_meta_security:{captcha_token:token}}),signal:ctl.signal,credentials:'omit'});
 const data=await res.json().catch(()=>({}));
-if(res.ok){report('Supabase aceptó la solicitud (HTTP '+res.status+'). Comprueba tu bandeja, Spam y Promociones. Esto aún no confirma la entrega. No abras ni compartas el enlace para esta prueba de recepción.');}
-else{sent=false;report('Solicitud rechazada (HTTP '+res.status+'): '+String(data.msg||data.error_description||data.error||data.code||'Consulta Auth Logs para detalles').slice(0,180)+'. No repetir automáticamente.');}
-}catch(e){sent=false;report('No se confirmó el envío: '+(e.name==='AbortError'?'tiempo de espera agotado':'fallo de red/CORS')+'. No reintentar hasta revisar registros.');}
+if(res.ok){report('Supabase aceptó la solicitud (HTTP '+res.status+'). Comprueba tu bandeja, Spam y Promociones y abre el enlace sin compartirlo. Esto aún no confirma entrega ni sesión.');}
+else{report('Solicitud rechazada (HTTP '+res.status+'). No se reintentó. Consulta los registros de Auth sin copiar enlaces ni credenciales.');}
+}catch(e){report('No se confirmó el envío: '+(e.name==='AbortError'?'tiempo de espera agotado':'fallo de red/CORS')+'. No reintentar hasta revisar registros.');}
 finally{clearTimeout(timeout);token='';try{window.turnstile?.reset(widget)}catch{}button.disabled=true;}
 });
+const captchaScript=document.createElement('script');captchaScript.src='https://challenges.cloudflare.com/turnstile/v0/api.js?onload=sicCaptchaReady&render=explicit';captchaScript.async=true;captchaScript.defer=true;document.head.append(captchaScript);
 })();
 </script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=sicCaptchaReady&render=explicit" async defer></script>
 </body>
 </html>
+
