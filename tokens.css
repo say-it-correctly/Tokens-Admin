@@ -1,1 +1,39 @@
 @font-face{font-family:Urbanist;src:url('assets/Urbanist-VariableFont_wght.ttf')}*{box-sizing:border-box}body{margin:0;background:#f4f7fc;color:#123b78;font:17px Urbanist,Arial,sans-serif}main{max-width:1100px;margin:auto;padding:24px}header,form,article,#issued{background:white;border:1px solid #dce4f0;border-radius:16px;padding:20px;margin:16px 0}h1{font-size:clamp(26px,5vw,38px)}label{display:grid;gap:6px;margin:12px 0}input{font:inherit;padding:12px;border:1px solid #899bb8;border-radius:8px;min-width:0;max-width:100%}input[type=checkbox]{width:22px;height:22px}button{font:inherit;padding:12px 18px;border:0;border-radius:10px;color:white;background:#123b78;cursor:pointer;margin:6px 8px 6px 0}button:disabled{opacity:.5;cursor:default}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #e53845;outline-offset:3px}#status{min-height:24px}output,article{overflow-wrap:anywhere}nav{display:flex;flex-wrap:wrap}[hidden]{display:none!important}@media(min-width:700px){#payment{display:grid;grid-template-columns:1fr 1fr;gap:0 20px}#payment h2,#payment p,#payment button{grid-column:1/-1}}
+
+/* SIC 2026: mejoras de jerarquía y respuesta; conservar la identidad original. */
+:root{--sic-blue:#123b78;--sic-line:#dce4f0;--sic-ink:#183b70;--sic-muted:#61738b;--sic-bg:#f4f7fc}
+body{background:linear-gradient(155deg,#eaf1fb 0,#f5f8fc 28%,#f4f7fc 80%);line-height:1.45}
+main{max-width:1280px;padding:clamp(16px,3vw,40px);margin:0 auto}
+main>header{position:relative;border:1px solid #dce7f7;box-shadow:0 12px 36px rgba(18,59,120,.07);padding:clamp(22px,3vw,36px);background:linear-gradient(125deg,#fff 0%,#eef5ff 100%);overflow:hidden}
+main>header:before{content:"";position:absolute;right:-56px;top:-86px;width:260px;height:260px;border:45px solid rgba(18,59,120,.055);border-radius:50%;pointer-events:none}
+main>header a{font-weight:800;color:var(--sic-blue);text-decoration:none}
+main>header h1{font-size:clamp(27px,3.4vw,43px);letter-spacing:-.03em;line-height:1.13;margin:12px 0}
+main>header p{color:var(--sic-muted);max-width:58ch;margin:0}
+#status{font-weight:600;line-height:1.5}
+#panel>form,#panel>#issued,#panel>article,#login{box-shadow:0 5px 20px rgba(18,59,120,.035)}
+#panel form h2{letter-spacing:-.015em}
+#panel form p{color:var(--sic-muted);line-height:1.55}
+#panel input:not([type=checkbox]){background:#fbfdff;border-color:#a5b8d2;min-height:46px}
+#panel input[readonly]{background:#edf3fa;color:#324c70}
+#panel button,#login button{font-weight:750;min-height:42px;transition:background .2s,transform .2s}
+#panel button:hover:not([disabled]),#login button:hover:not([disabled]){background:#23549a;transform:translateY(-1px)}
+.sic-top-actions{display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;margin:14px 0}
+.sic-top-actions button{background:#e7effb!important;border:1px solid #cbd9ed;color:var(--sic-blue)!important}
+.sic-dashboard-intro{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:22px 24px;border:1px solid var(--sic-line);border-radius:18px;background:#fff;margin:16px 0}
+.sic-dashboard-intro h2{font-size:clamp(22px,3vw,31px);margin:4px 0}
+.sic-dashboard-intro p{margin:0;color:var(--sic-muted)}
+.sic-kicker{font-size:.73rem;font-weight:850;letter-spacing:.12em;color:#4d6da0}
+.sic-capacity-card{background:#123b78;color:white;padding:17px 20px;border-radius:14px;min-width:215px;font-weight:800;text-align:center}
+.sic-section-links{display:flex;flex-wrap:wrap;gap:9px;margin:20px 0}
+.sic-section-links a{padding:10px 15px;background:#fff;border:1px solid var(--sic-line);border-radius:999px;color:var(--sic-blue);font-weight:750;text-decoration:none}
+.sic-section-links a:hover{background:#e8f1ff}
+#panel>h2{margin:32px 4px 12px;letter-spacing:-.02em}
+#requests,#tokens,#grants{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:12px}
+#requests article,#tokens article,#grants article{margin:0;padding:18px;border-left:4px solid #2b5aa1;line-height:1.5}
+#requests article button,#tokens article button,#grants article button{display:inline-flex;margin-top:12px;font-size:.91rem}
+#issued{border:2px solid #81a6d5;background:#f8fbff}
+#issued output{display:block;padding:13px;background:#eaf1fb;border:1px dashed #a9bedb;border-radius:9px;word-break:break-all}
+#payment label:has([type=checkbox]),#register label:has([type=checkbox]){display:flex;align-items:flex-start;gap:10px}
+#payment label:has([type=checkbox]) input,#register label:has([type=checkbox]) input{flex:none}
+@media(max-width:740px){.sic-dashboard-intro{flex-direction:column;align-items:stretch}.sic-capacity-card{min-width:0}.sic-section-links{overflow:auto;flex-wrap:nowrap;padding-bottom:6px}.sic-section-links a{white-space:nowrap}main{padding:14px}#requests,#tokens,#grants{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){#panel button,#login button{transition:none}#panel button:hover:not([disabled]){transform:none}}
